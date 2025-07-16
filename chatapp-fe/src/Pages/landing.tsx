@@ -3,6 +3,7 @@ import { useState , useRef} from "react"
 
 export default function Landing(){
     const featuresRef = useRef<HTMLDivElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
     function Header(){
         const [menu,setmenu] = useState(false)
         return (
@@ -12,7 +13,7 @@ export default function Landing(){
                 </div>
                 <div className="md:flex gap-10 items-center hidden">
                     <span onClick={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Features</span>
-                    <span className="hover:text-orange-400 cursor-pointer duration-300">Preview</span>
+                    <span onClick={() => previewRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Preview</span>
                     <a href="https://github.com/lkshayb/chatapp" target="_blank">
                         <span className="flex items-center gap-2 text-lg cursor-pointer hover:scale-110  duration-200 bg-gradient-to-r from-orange-700 to-orange-500 text-black font-bold py-1 px-3 rounded-lg">
                             <Github/>
@@ -162,10 +163,10 @@ export default function Landing(){
         )
     }
 
-    function Preview(){
+    function Preview({ refProp }: { refProp: React.RefObject<HTMLDivElement> }){
         function Card(props:any){
             return(
-                <div className="hover:scale-105 py-8 px-[50px] mt-5 bg-orange-500/30 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] w-[300px] hover:scale-105 duration-300">
+                <div ref={refProp} className="hover:scale-105 py-8 px-[50px] mt-5 bg-orange-500/30 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] w-[300px] hover:scale-105 duration-300">
                     <div className="flex justify-center mb-5">
                         <div className="bg-gradient-to-tr from-orange-700 to-orange-500 text-black rounded-full p-3 ">
                             {props.children}
@@ -220,7 +221,7 @@ export default function Landing(){
             <Header/>
             <Hero/>
             <Features refProp={featuresRef} />
-            <Preview/>
+            <Preview refProp={previewRef}/>
         </div>
     )
 }
