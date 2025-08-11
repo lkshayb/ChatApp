@@ -167,7 +167,7 @@ export default function Landing():ReactElement{
     function Preview({ refProp }: { refProp: React.RefObject<HTMLDivElement> }):ReactElement{
         function Card(props:any){
             return(
-                <div ref={refProp} className="hover:scale-105 py-8 px-[50px] mt-5 bg-orange-500/30 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] w-[300px] hover:scale-105 duration-300">
+                <div  className="hover:scale-105 py-8 px-[50px] mt-5 bg-orange-500/30 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] w-[300px] hover:scale-105 duration-300">
                     <div className="flex justify-center mb-5">
                         <div className="bg-gradient-to-tr from-orange-700 to-orange-500 text-black rounded-full p-3 ">
                             {props.children}
@@ -180,7 +180,7 @@ export default function Landing():ReactElement{
             )
         }
         return(
-            <div className="md:max-h-screen min-h-screen bg-gradient-to-bl py-[100px] from-black via-gray-800 to-gray-600/80">
+            <div ref={refProp} className="md:max-h-screen min-h-screen bg-gradient-to-bl pt-[100px] from-black via-gray-800 to-gray-600/80">
                 <div className="relative">
                     <div className="flex justify-center  ">
                         <span className="sm:text-4xl text-3xl font-bold text-white">
