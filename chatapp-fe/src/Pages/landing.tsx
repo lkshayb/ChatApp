@@ -1,10 +1,11 @@
 import {  Github, SquareArrowOutUpRight, Menu, X, Zap ,MonitorSmartphone, UsersRound, MessageSquare, Settings, Lock, ArrowRight, Circle} from "lucide-react"
-import { useState , useRef} from "react"
+import { useState , useRef, ReactElement} from "react"
 
-export default function Landing(){
+export default function Landing():ReactElement{
     const featuresRef = useRef<HTMLDivElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
-    function Header(){
+    const aboutRef = useRef<HTMLDivElement>(null);
+    function Header():ReactElement {
         const [menu,setmenu] = useState(false)
         return (
             <div className="z-50  backdrop-blur-lg  border-b-2 border-orange-600 items-center fixed bg-black/80 text-white top-0 left-0 w-screen px-8 py-4 flex items-center justify-between md:justify-around ">
@@ -13,7 +14,7 @@ export default function Landing(){
                 </div>
                 <div className="md:flex gap-10 items-center hidden">
                     <span onClick={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Features</span>
-                    <span onClick={() => previewRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Preview</span>
+                    <span onClick={() => previewRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Try Now</span>
                     <a href="https://github.com/lkshayb/chatapp" target="_blank">
                         <span className="flex items-center gap-2 text-lg cursor-pointer hover:scale-110  duration-200 bg-gradient-to-r from-orange-700 to-orange-500 text-black font-bold py-1 px-3 rounded-lg">
                             <Github/>
@@ -38,7 +39,7 @@ export default function Landing(){
         )
     }
     
-    function Hero(){
+    function Hero({ refProp }: { refProp: React.RefObject<HTMLDivElement> }):ReactElement{
         function Card(props:any){
             return(
                 <div className="py-5 px-8 mt-5 bg-black/10 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] hover:scale-105 duration-300">
@@ -48,7 +49,7 @@ export default function Landing(){
             )
         }
         return(
-            <div className=" min-h-screen font-black pt-[160px] pb-[100px] bg-gradient-to-br from-black via-[#121226] to-[#4d2a12]">
+            <div ref={refProp} className=" min-h-screen font-black pt-[160px] pb-[100px] bg-gradient-to-br from-black via-[#121226] to-[#4d2a12]">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-orange-400/20 to-amber-500/20 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-orange-600/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
                 <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-orange-500/10 to-amber-600/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
@@ -99,13 +100,13 @@ export default function Landing(){
         )
     }
 
-    function Features({ refProp }: { refProp: React.RefObject<HTMLDivElement> }){
+    function Features({ refProp }: { refProp: React.RefObject<HTMLDivElement> }):ReactElement{
         function Card(props:any){
             return (
                 <div  className="max-w-[400px] z-90 group bg-gradient-to-tl from-gray-900 to-[black] rounded-xl border-orange-700/30 border  sm:w-auto w-[300px]  text-white pt-7 pl-7 hover:border-orange-700/60 duration-300 shadow-xl hover:scale-105 hover:shadow-orange-700/20">
                     
                     <div className="flex justify-left">
-                        <div className="group-hover:bg-orange-900/100 group-hover:scale-[115%] duration-300 bg-orange-600/80 rounded-lg flex justify-center p-2 text-orange-300">
+                        <div className="group-hover:bg-orange-900/50 group-hover:scale-[115%] duration-300 bg-orange-600/100 rounded-lg flex justify-center p-2 text-orange-300">
                             {props.children}
                         </div>
                     </div>
@@ -139,7 +140,7 @@ export default function Landing(){
                 </div>
                 <div className="relative flex gap-10 flex-wrap justify-center mt-[100px]">
                     <Card upper="Real-time Messaging" lower="Instant message delivery using WebSocket technology for live, seamless communication. Messages appear instantly without needing to refresh.">
-                        <Zap className="text-black group-hover:text-orange-300"/>
+                        <Zap className="text-black group-hover:text-orange-200"/>
                     </Card>      
                     <Card upper="Mobile-first Design" lower="Responsive UI built with Tailwind CSS, optimized for all devices. Enjoy a smooth and consistent experience on mobile, tablet, and desktop.">
                         <MonitorSmartphone className="text-black group-hover:text-orange-300"/>
@@ -163,7 +164,7 @@ export default function Landing(){
         )
     }
 
-    function Preview({ refProp }: { refProp: React.RefObject<HTMLDivElement> }){
+    function Preview({ refProp }: { refProp: React.RefObject<HTMLDivElement> }):ReactElement{
         function Card(props:any){
             return(
                 <div ref={refProp} className="hover:scale-105 py-8 px-[50px] mt-5 bg-orange-500/30 border-orange-500/30 border backdrop-blur-md rounded-xl md:w-[100%] sm:w-[600px] w-[300px] hover:scale-105 duration-300">
@@ -193,10 +194,10 @@ export default function Landing(){
                 </div>
                 <div className="flex justify-center mt-[50px]">
                     <a href="/main">
-                        <div className="flex bg-gradient-to-br from-orange-800 to-orange-500 hover:scale-105 duration-300 hover:from-orange-700 hover:shadow-lg hover:shadow-orange-700/40 hover:to-orange-400 justify-center rounded-xl py-3 px-1 items-center gap-2 font-semibold w-[250px]" >
+                        <div className="group flex bg-gradient-to-br from-orange-800 to-orange-500 hover:scale-105 duration-300 hover:from-orange-700 hover:shadow-lg hover:shadow-orange-700/40 hover:to-orange-400 justify-center rounded-xl py-3 px-1 items-center gap-2 font-semibold w-[250px]" >
                             <MessageSquare className="md:h-6 h-5 "/>
                             Try TalkSpace Now
-                            <ArrowRight/>
+                            <ArrowRight className="group-hover:rotate-[-360deg] duration-300"/>
                         </div>
                     </a>
                 </div>
@@ -216,12 +217,40 @@ export default function Landing(){
             </div>
         )
     }
+    function Footer():ReactElement{
+        return(
+            <div className="bg-gradient-to-b from-[#1a0f0d]  to-[#0b0b1a] pt-8 px-7 pb-8  border-t-[1px] border-white/30">
+                <div className=" sm:flex justify-between  items-center pb-9">
+                    <div className="font-bold text-2xl text-[#ff6600] sm:pb-0 pb-3">
+                        TalkSpace
+                        <div className="font-semibold text-sm text-orange-300/70">
+                            Real-time room chats made simple
+                        </div>
+                    </div>
+                    <div className="sm:flex-row flex flex-col gap-3 text-lg sm:gap-8 font-semibold sm:text-md text-white/70">
+                        <span onClick={() => aboutRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">About</span>
+                        <span onClick={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" , block:"start"})} className="hover:text-orange-400 cursor-pointer duration-300">Features</span>
+                        <a href="/main">
+                            <span className="hover:text-orange-400 cursor-pointer duration-300">Visit App</span>
+                        </a>
+                        <a href="https://github.com/lkshayb/chatapp" target="_blank">
+                            <span className="hover:text-orange-400 cursor-pointer duration-300">Github</span>
+                        </a>
+                    </div>
+                    
+                </div>
+                <div className="text-gray-300 bg-white/50 h-[1px] "/>
+            </div>
+            
+        )
+    }
     return(
         <div>
             <Header/>
-            <Hero/>
+            <Hero refProp={aboutRef}/>
             <Features refProp={featuresRef} />
             <Preview refProp={previewRef}/>
+            <Footer/>
         </div>
     )
 }
