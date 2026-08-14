@@ -18,13 +18,15 @@ let allSockets: User[] = []
 var CurrentRooms:Number[] = [];
 
 //aaaa
-async () => {
+async function connect_DB() {
     await connectDB()    
 }
 
+connectDB()
 
 async function HandleRoomAddition(rm:any) {
     const msg = await Room.find({roomId:rm})
+    console.log(msg)
     if(msg.length != 0){
         return
     }  
@@ -183,5 +185,5 @@ wss.on("connection",(socket) => {
 
 
 server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running at ws://localhost:${PORT}`);
 });
