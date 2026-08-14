@@ -1,12 +1,10 @@
-import { count } from "console";
-import { rm } from "fs";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+
+
 const PORT = Number(process.env.PORT) || 8080;
 const server = createServer(); 
     
-
-
 const wss = new WebSocketServer({ server  });
 
 interface User {
@@ -64,29 +62,33 @@ wss.on("connection",(socket) => {
     socket.on("message", (message) => {
         const parsedMessage = JSON.parse(message as unknown as string);
         
-        setInterval(() => {
-                    const usersInRoom = allSockets
-                        .filter(user => user.room === parsedMessage.payload.roomID)
-                        .map(user => user.name);
-                    let rmcount = 0;
-                    for(let i=0;i<allSockets.length;i++){
-                        if(allSockets[i].room == parsedMessage.payload.roomID){
-                            rmcount++
-                            allSockets[i].socket.send((
-                                JSON.stringify({
-                                    type:"pplcount",
-                                    count:rmcount,
-                                    names: usersInRoom
-                                })
-                            ))
-                        }
-                    }
-            }, 1000);
+        
 
         if (parsedMessage.type == "join"){
+
+            setInterval(() => {
+                const usersInRoom = allSockets
+                    .filter(user => user.room === parsedMessage.payload.roomID)
+                    .map(user => user.name);
+                let rmcount = 0;
+                for(let i=0;i<allSockets.length;i++){
+                    if(allSockets[i].room == parsedMessage.payload.roomID){
+                        rmcount++
+                        allSockets[i].socket.send((
+                            JSON.stringify({
+                                type:"pplcount",
+                                count:rmcount,
+                                names: usersInRoom
+                            })
+                        ))
+                    }
+                }
+            }, 1000);
+
             const rm:number = Number(parsedMessage.payload.roomID);
             
             if(CurrentRooms){
+                //Call Room Addition function in DB
                 let flag = 0;
                 for(let i = 0;i<CurrentRooms.length;i++){
                     if(CurrentRooms[i] == rm){
@@ -108,26 +110,33 @@ wss.on("connection",(socket) => {
                 room: parsedMessage.payload.roomID,
                 name: parsedMessage.payload.name
             })
-            
+            //Call function to add user in room in DB
 
 
            
         }
 
         if (parsedMessage.type == "chat"){
-            let currentUserRoom = null
-            for (let i = 0;i<allSockets.length;i++){
-                if (allSockets[i].socket instanceof socket.constructor) {
-                    currentUserRoom = allSockets[i].room
-                }
+            // let currentUserRoom = null
+            // for (let i = 0;i<allSockets.length;i++){
+            //     if (allSockets[i].socket instanceof socket.constructor) {
+            //         currentUserRoom = allSockets[i].room
+            //     }
+            // }
+            const currentUser = allSockets.find(user => user.socket === socket);
+            if(!currentUser){
+                socket.send(JSON.stringify({msg:"ROOM NOT FOUND"}))
+                return 
             }
+            const currentUserRoom = currentUser?.room;
+            // Code to add message in room schema of DB 
             for (let i = 0;i< allSockets.length;i++){
                 if (allSockets[i].room == currentUserRoom){ 
                     allSockets[i].socket.send((
                         JSON.stringify({
                             msg: parsedMessage.payload.msg,
                             sender: parsedMessage.payload.sender,
-                            currentrooms:CurrentRooms
+
                         })
                     ))
                     

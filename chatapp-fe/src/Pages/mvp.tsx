@@ -46,8 +46,8 @@ export default function MainApp() {
   const connectWebSocket = () => {
     if (wsRef.current) return;
     setIsConnecting(true);
-    const ws = new WebSocket("https://chatapp-ecai.onrender.com");
-    //const ws = new WebSocket("ws://localhost:8080");
+    //const ws = new WebSocket("https://chatapp-ecai.onrender.com");
+    const ws = new WebSocket("ws://localhost:8080");
     
     ws.onopen = () => {
       console.log("WebSocket connection established");
@@ -223,7 +223,7 @@ export default function MainApp() {
                   <div className="relative inline-flex mt-5 text-white items-center">
                     <div className="rounded-full bg-green-400 h-[8px] w-[8px] inline-block mr-2"></div>
                     <div className="absolute animate-ping rounded-full bg-green-400 h-[8px] w-[8px] mr-2"></div>
-                    <div>{pplcount} Online {pplcount > 1 ? <span>Users </span> : <span>User </span>}</div>
+                    <div>{pplcount} Online {0. > 1 ? <span>Users </span> : <span>User </span>}</div>
                   </div>
                 </div>
                 
