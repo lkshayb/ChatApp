@@ -1,10 +1,11 @@
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-
-
+import connectDB from "./db/db";
+import Room from "./db/room"
+import Message from "./db/message"
 const PORT = Number(process.env.PORT) || 8080;
-const server = createServer(); 
-    
+
+const server = createServer();  
 const wss = new WebSocketServer({ server  });
 
 interface User {
@@ -14,7 +15,40 @@ interface User {
 }
 
 let allSockets: User[] = []
-var CurrentRooms:number[] = [];
+var CurrentRooms:Number[] = [];
+
+//aaaa
+async () => {
+    await connectDB()    
+}
+
+
+async function HandleRoomAddition(rm:any) {
+    const msg = await Room.find({roomId:rm})
+    if(msg.length != 0){
+        return
+    }  
+    else{
+        await Room.create({
+            roomId: rm,
+            users:[]
+        })
+    }
+}
+
+async function AddUserToRoom(name:String,socket:any) {
+    await Room.updateOne(
+        { roomId: 1 },
+        {
+            $push: {
+                users: {
+                    username: name,
+                    socket:socket
+                }
+            }
+        }
+    );
+}
 
 wss.on("connection",(socket) => {
 
@@ -59,7 +93,7 @@ wss.on("connection",(socket) => {
         
     })
 
-    socket.on("message", (message) => {
+    socket.on("message",async (message) => {
         const parsedMessage = JSON.parse(message as unknown as string);
         
         
@@ -85,10 +119,11 @@ wss.on("connection",(socket) => {
                 }
             }, 1000);
 
-            const rm:number = Number(parsedMessage.payload.roomID);
+            const rm:Number = Number(parsedMessage.payload.roomID);
             
             if(CurrentRooms){
-                //Call Room Addition function in DB
+                
+                await HandleRoomAddition(rm)
                 let flag = 0;
                 for(let i = 0;i<CurrentRooms.length;i++){
                     if(CurrentRooms[i] == rm){
@@ -110,26 +145,24 @@ wss.on("connection",(socket) => {
                 room: parsedMessage.payload.roomID,
                 name: parsedMessage.payload.name
             })
-            //Call function to add user in room in DB
+            await AddUserToRoom(parsedMessage.payload.name,socket)
 
 
            
         }
 
         if (parsedMessage.type == "chat"){
-            // let currentUserRoom = null
-            // for (let i = 0;i<allSockets.length;i++){
-            //     if (allSockets[i].socket instanceof socket.constructor) {
-            //         currentUserRoom = allSockets[i].room
-            //     }
-            // }
             const currentUser = allSockets.find(user => user.socket === socket);
             if(!currentUser){
                 socket.send(JSON.stringify({msg:"ROOM NOT FOUND"}))
                 return 
             }
             const currentUserRoom = currentUser?.room;
-            // Code to add message in room schema of DB 
+            await Message.create({
+                roomId: currentUser.room,
+                username: currentUser.name,
+                message: parsedMessage.payload.msg
+            });
             for (let i = 0;i< allSockets.length;i++){
                 if (allSockets[i].room == currentUserRoom){ 
                     allSockets[i].socket.send((
@@ -148,7 +181,7 @@ wss.on("connection",(socket) => {
 
 })
 
-// Start both HTTP & WebSocket server
+
 server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
