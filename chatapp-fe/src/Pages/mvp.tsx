@@ -163,10 +163,10 @@ export default function MainApp() {
             </div>
           </div>
           <div>
-            {membersnames.map((name, index) => (
+            {membersnames.map((username, index) => (
               <div className="flex gap-2 items-center p-1 bg-white/10 backdrop-blur-lg text-black rounded-lg border border-white/50 mx-2 mt-2" key={index}> 
-                <div className="bg-gradient-to-tr from-purple-900 to-amber-800 px-3 text-white py-1 flex rounded-full ">{name[0].toUpperCase()}</div>
-                  {name}
+                <div className="bg-gradient-to-tr from-purple-900 to-amber-800 px-3 text-white py-1 flex rounded-full ">{username[0].toUpperCase()}</div>
+                  {username}
                 </div>
             ))}
           </div>

@@ -28,7 +28,7 @@ function connect_DB() {
         yield (0, db_1.default)();
     });
 }
-(0, db_1.default)();
+connect_DB();
 function HandleRoomAddition(rm) {
     return __awaiter(this, void 0, void 0, function* () {
         const msg = yield room_1.default.find({ roomId: rm });
@@ -44,9 +44,9 @@ function HandleRoomAddition(rm) {
         }
     });
 }
-function AddUserToRoom(name, socket) {
+function AddUserToRoom(name, socket, rm) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield room_1.default.updateOne({ roomId: 1 }, {
+        yield room_1.default.updateOne({ roomId: rm }, {
             $push: {
                 users: {
                     username: name,
@@ -92,24 +92,27 @@ wss.on("connection", (socket) => {
         }
     });
     socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         const parsedMessage = JSON.parse(message);
         if (parsedMessage.type == "join") {
-            setInterval(() => {
-                const usersInRoom = allSockets
-                    .filter(user => user.room === parsedMessage.payload.roomID)
-                    .map(user => user.name);
-                let rmcount = 0;
-                for (let i = 0; i < allSockets.length; i++) {
-                    if (allSockets[i].room == parsedMessage.payload.roomID) {
-                        rmcount++;
-                        allSockets[i].socket.send((JSON.stringify({
-                            type: "pplcount",
-                            count: rmcount,
-                            names: usersInRoom
-                        })));
-                    }
-                }
-            }, 1000);
+            // setInterval(() => {
+            //     const usersInRoom = allSockets
+            //         .filter(user => user.room === parsedMessage.payload.roomID)
+            //         .map(user => user.name);
+            //     let rmcount = 0;
+            //     for(let i=0;i<allSockets.length;i++){
+            //         if(allSockets[i].room == parsedMessage.payload.roomID){
+            //             rmcount++
+            //             allSockets[i].socket.send((
+            //                 JSON.stringify({
+            //                     type:"pplcount",
+            //                     count:rmcount,
+            //                     names: usersInRoom
+            //                 })
+            //             ))
+            //         }
+            //     }
+            // }, 1000);
             const rm = Number(parsedMessage.payload.roomID);
             if (CurrentRooms) {
                 yield HandleRoomAddition(rm);
@@ -129,7 +132,19 @@ wss.on("connection", (socket) => {
                 room: parsedMessage.payload.roomID,
                 name: parsedMessage.payload.name
             });
-            yield AddUserToRoom(parsedMessage.payload.name, socket);
+            yield AddUserToRoom(parsedMessage.payload.name, socket, rm);
+            const users_data = yield room_1.default.findOne({ roomId: parsedMessage.payload.roomID }, { users: 1, _id: 0 });
+            console.log(users_data);
+            const usernames = (_a = users_data === null || users_data === void 0 ? void 0 : users_data.users.map(u => u.username)) !== null && _a !== void 0 ? _a : [];
+            for (let i = 0; i < allSockets.length; i++) {
+                if (allSockets[i].room == parsedMessage.payload.roomID) {
+                    allSockets[i].socket.send((JSON.stringify({
+                        type: "pplcount",
+                        count: users_data === null || users_data === void 0 ? void 0 : users_data.users.length,
+                        names: usernames
+                    })));
+                }
+            }
         }
         if (parsedMessage.type == "chat") {
             const currentUser = allSockets.find(user => user.socket === socket);

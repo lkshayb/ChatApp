@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import connectDB from "./db/db";
 import Room from "./db/room"
 import Message from "./db/message"
+import { rmdir } from "fs/promises";
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = createServer();  
@@ -22,7 +23,7 @@ async function connect_DB() {
     await connectDB()    
 }
 
-connectDB()
+connect_DB()
 
 async function HandleRoomAddition(rm:any) {
     const msg = await Room.find({roomId:rm})
@@ -38,9 +39,9 @@ async function HandleRoomAddition(rm:any) {
     }
 }
 
-async function AddUserToRoom(name:String,socket:any) {
+async function AddUserToRoom(name:String,socket:any,rm:any) {
     await Room.updateOne(
-        { roomId: 1 },
+        { roomId: rm },
         {
             $push: {
                 users: {
@@ -66,7 +67,7 @@ wss.on("connection",(socket) => {
     socket.on("close" , () => {
         
         let remroom:number | undefined;
-        console.log("1 connection closed")
+        
 
         for(let i=0;i<allSockets.length;i++){
             
@@ -92,7 +93,7 @@ wss.on("connection",(socket) => {
                 console.log("room stil have sockets")
             }
         }
-        
+        console.log("1 connection closed")
     })
 
     socket.on("message",async (message) => {
@@ -101,25 +102,26 @@ wss.on("connection",(socket) => {
         
 
         if (parsedMessage.type == "join"){
-
-            setInterval(() => {
-                const usersInRoom = allSockets
-                    .filter(user => user.room === parsedMessage.payload.roomID)
-                    .map(user => user.name);
-                let rmcount = 0;
-                for(let i=0;i<allSockets.length;i++){
-                    if(allSockets[i].room == parsedMessage.payload.roomID){
-                        rmcount++
-                        allSockets[i].socket.send((
-                            JSON.stringify({
-                                type:"pplcount",
-                                count:rmcount,
-                                names: usersInRoom
-                            })
-                        ))
-                    }
-                }
-            }, 1000);
+            
+            
+            // setInterval(() => {
+            //     const usersInRoom = allSockets
+            //         .filter(user => user.room === parsedMessage.payload.roomID)
+            //         .map(user => user.name);
+            //     let rmcount = 0;
+            //     for(let i=0;i<allSockets.length;i++){
+            //         if(allSockets[i].room == parsedMessage.payload.roomID){
+            //             rmcount++
+            //             allSockets[i].socket.send((
+            //                 JSON.stringify({
+            //                     type:"pplcount",
+            //                     count:rmcount,
+            //                     names: usersInRoom
+            //                 })
+            //             ))
+            //         }
+            //     }
+            // }, 1000);
 
             const rm:Number = Number(parsedMessage.payload.roomID);
             
@@ -137,18 +139,27 @@ wss.on("connection",(socket) => {
                 }
             } 
             console.log("Looking for users in room:", parsedMessage.payload.roomID);
-
-            
-
-            
-            
             allSockets.push({
                 socket,
                 room: parsedMessage.payload.roomID,
                 name: parsedMessage.payload.name
             })
-            await AddUserToRoom(parsedMessage.payload.name,socket)
+            await AddUserToRoom(parsedMessage.payload.name,socket,rm)
 
+            const users_data = await Room.findOne({ roomId: parsedMessage.payload.roomID },{ users: 1, _id: 0 }); 
+            console.log(users_data)
+            const usernames = users_data?.users.map(u => u.username) ?? [];
+            for(let i=0;i<allSockets.length;i++){
+                if(allSockets[i].room == parsedMessage.payload.roomID){
+                    allSockets[i].socket.send((
+                        JSON.stringify({
+                            type:"pplcount",
+                            count:users_data?.users.length,
+                            names: usernames
+                        })
+                    ))
+                }
+            }
 
            
         }
