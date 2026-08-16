@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import connectDB from "./db/db";
 import Room from "./db/room"
 import Message from "./db/message"
-import { rmdir } from "fs/promises";
+import mongoose from "mongoose";
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = createServer();  
@@ -13,6 +13,7 @@ interface User {
     socket : WebSocket;
     room : number;
     name: string;
+    dbUserId : string;
 }
 
 let allSockets: User[] = []
@@ -39,18 +40,22 @@ async function HandleRoomAddition(rm:any) {
     }
 }
 
-async function AddUserToRoom(name:String,socket:any,rm:any) {
+async function AddUserToRoom(name:String,rm:any) {
+    const userId = new mongoose.Types.ObjectId();
+
     await Room.updateOne(
         { roomId: rm },
         {
             $push: {
                 users: {
-                    username: name,
-                    socket:socket
+                    _id: userId,
+                    username: name
                 }
             }
         }
     );
+
+    return userId.toString();
 }
 
 wss.on("connection",(socket) => {
@@ -64,7 +69,7 @@ wss.on("connection",(socket) => {
     
     
 
-    socket.on("close" , () => {
+    socket.on("close" , async () => {
         
         let remroom:number | undefined;
         
@@ -72,7 +77,20 @@ wss.on("connection",(socket) => {
         for(let i=0;i<allSockets.length;i++){
             
             if(allSockets[i].socket === socket){
-                remroom = allSockets[i].room
+                // remove user from the room 
+                const currentUser = allSockets[i];
+                await Room.updateOne(
+                    { 
+                        roomId: currentUser.room 
+                    },
+                    { 
+                        $pull: { 
+                            users: {
+                                _id: new mongoose.Types.ObjectId(currentUser.dbUserId)
+                            }
+                        } 
+                    });
+                remroom = currentUser.room
                 console.log("removed socket from :",remroom)
                 allSockets.splice(i,1)
                 break
@@ -84,12 +102,30 @@ wss.on("connection",(socket) => {
             if(!stillexist){
                 const roomIndex = CurrentRooms.indexOf(remroom);
                 if(remroom !== -1){
+                    // remove room if zero users
+                    await Room.deleteOne({ roomId: remroom });
                     console.log("rem room :",remroom);
                     CurrentRooms.splice(roomIndex,1)
                 }else{
                     console.log("room not found:",remroom);
                 }
             } else{
+                // dont remove rooms
+                const users_data = await Room.findOne({ roomId: remroom },{ users: 1, _id: 0 }); 
+                console.log(users_data)
+                const usernames = users_data?.users.map(u => u.username) ?? [];
+
+                for(let i=0;i<allSockets.length;i++){
+                    if(allSockets[i].room == remroom){
+                        allSockets[i].socket.send((
+                            JSON.stringify({
+                                type:"pplcount",
+                                count:users_data?.users.length,
+                                names: usernames
+                            })
+                        ))
+                    }
+                }
                 console.log("room stil have sockets")
             }
         }
@@ -102,28 +138,8 @@ wss.on("connection",(socket) => {
         
 
         if (parsedMessage.type == "join"){
-            
-            
-            // setInterval(() => {
-            //     const usersInRoom = allSockets
-            //         .filter(user => user.room === parsedMessage.payload.roomID)
-            //         .map(user => user.name);
-            //     let rmcount = 0;
-            //     for(let i=0;i<allSockets.length;i++){
-            //         if(allSockets[i].room == parsedMessage.payload.roomID){
-            //             rmcount++
-            //             allSockets[i].socket.send((
-            //                 JSON.stringify({
-            //                     type:"pplcount",
-            //                     count:rmcount,
-            //                     names: usersInRoom
-            //                 })
-            //             ))
-            //         }
-            //     }
-            // }, 1000);
 
-            const rm:Number = Number(parsedMessage.payload.roomID);
+            const rm:number = Number(parsedMessage.payload.roomID);
             
             if(CurrentRooms){
                 
@@ -139,12 +155,14 @@ wss.on("connection",(socket) => {
                 }
             } 
             console.log("Looking for users in room:", parsedMessage.payload.roomID);
+            const dbUserId = await AddUserToRoom(parsedMessage.payload.name,rm);
+
             allSockets.push({
                 socket,
-                room: parsedMessage.payload.roomID,
-                name: parsedMessage.payload.name
-            })
-            await AddUserToRoom(parsedMessage.payload.name,socket,rm)
+                room: rm,
+                name: parsedMessage.payload.name,
+                dbUserId
+            });
 
             const users_data = await Room.findOne({ roomId: parsedMessage.payload.roomID },{ users: 1, _id: 0 }); 
             console.log(users_data)

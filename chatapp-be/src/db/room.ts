@@ -1,3 +1,4 @@
+import { Socket } from "dgram";
 import mongoose from "mongoose";
 
 const roomSchema = new mongoose.Schema(
@@ -9,7 +10,6 @@ const roomSchema = new mongoose.Schema(
         },
         users: [{
             username:String,
-            socket:Object,
             joinedAt : {
                 type: Date,
                 default : Date.now

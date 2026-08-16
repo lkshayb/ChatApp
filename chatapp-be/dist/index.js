@@ -17,6 +17,7 @@ const ws_1 = require("ws");
 const db_1 = __importDefault(require("./db/db"));
 const room_1 = __importDefault(require("./db/room"));
 const message_1 = __importDefault(require("./db/message"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const PORT = Number(process.env.PORT) || 8080;
 const server = (0, http_1.createServer)();
 const wss = new ws_1.WebSocketServer({ server });
@@ -44,16 +45,18 @@ function HandleRoomAddition(rm) {
         }
     });
 }
-function AddUserToRoom(name, socket, rm) {
+function AddUserToRoom(name, rm) {
     return __awaiter(this, void 0, void 0, function* () {
+        const userId = new mongoose_1.default.Types.ObjectId();
         yield room_1.default.updateOne({ roomId: rm }, {
             $push: {
                 users: {
-                    username: name,
-                    socket: socket
+                    _id: userId,
+                    username: name
                 }
             }
         });
+        return userId.toString();
     });
 }
 wss.on("connection", (socket) => {
@@ -63,12 +66,23 @@ wss.on("connection", (socket) => {
             rcount: CurrentRooms.length
         }));
     }, 1000);
-    socket.on("close", () => {
+    socket.on("close", () => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         let remroom;
-        console.log("1 connection closed");
         for (let i = 0; i < allSockets.length; i++) {
             if (allSockets[i].socket === socket) {
-                remroom = allSockets[i].room;
+                // remove user from the room 
+                const currentUser = allSockets[i];
+                yield room_1.default.updateOne({
+                    roomId: currentUser.room
+                }, {
+                    $pull: {
+                        users: {
+                            _id: new mongoose_1.default.Types.ObjectId(currentUser.dbUserId)
+                        }
+                    }
+                });
+                remroom = currentUser.room;
                 console.log("removed socket from :", remroom);
                 allSockets.splice(i, 1);
                 break;
@@ -79,6 +93,8 @@ wss.on("connection", (socket) => {
             if (!stillexist) {
                 const roomIndex = CurrentRooms.indexOf(remroom);
                 if (remroom !== -1) {
+                    // remove room if zero users
+                    yield room_1.default.deleteOne({ roomId: remroom });
                     console.log("rem room :", remroom);
                     CurrentRooms.splice(roomIndex, 1);
                 }
@@ -87,32 +103,28 @@ wss.on("connection", (socket) => {
                 }
             }
             else {
+                // dont remove rooms
+                const users_data = yield room_1.default.findOne({ roomId: remroom }, { users: 1, _id: 0 });
+                console.log(users_data);
+                const usernames = (_a = users_data === null || users_data === void 0 ? void 0 : users_data.users.map(u => u.username)) !== null && _a !== void 0 ? _a : [];
+                for (let i = 0; i < allSockets.length; i++) {
+                    if (allSockets[i].room == remroom) {
+                        allSockets[i].socket.send((JSON.stringify({
+                            type: "pplcount",
+                            count: users_data === null || users_data === void 0 ? void 0 : users_data.users.length,
+                            names: usernames
+                        })));
+                    }
+                }
                 console.log("room stil have sockets");
             }
         }
-    });
+        console.log("1 connection closed");
+    }));
     socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         const parsedMessage = JSON.parse(message);
         if (parsedMessage.type == "join") {
-            // setInterval(() => {
-            //     const usersInRoom = allSockets
-            //         .filter(user => user.room === parsedMessage.payload.roomID)
-            //         .map(user => user.name);
-            //     let rmcount = 0;
-            //     for(let i=0;i<allSockets.length;i++){
-            //         if(allSockets[i].room == parsedMessage.payload.roomID){
-            //             rmcount++
-            //             allSockets[i].socket.send((
-            //                 JSON.stringify({
-            //                     type:"pplcount",
-            //                     count:rmcount,
-            //                     names: usersInRoom
-            //                 })
-            //             ))
-            //         }
-            //     }
-            // }, 1000);
             const rm = Number(parsedMessage.payload.roomID);
             if (CurrentRooms) {
                 yield HandleRoomAddition(rm);
@@ -127,12 +139,13 @@ wss.on("connection", (socket) => {
                 }
             }
             console.log("Looking for users in room:", parsedMessage.payload.roomID);
+            const dbUserId = yield AddUserToRoom(parsedMessage.payload.name, rm);
             allSockets.push({
                 socket,
-                room: parsedMessage.payload.roomID,
-                name: parsedMessage.payload.name
+                room: rm,
+                name: parsedMessage.payload.name,
+                dbUserId
             });
-            yield AddUserToRoom(parsedMessage.payload.name, socket, rm);
             const users_data = yield room_1.default.findOne({ roomId: parsedMessage.payload.roomID }, { users: 1, _id: 0 });
             console.log(users_data);
             const usernames = (_a = users_data === null || users_data === void 0 ? void 0 : users_data.users.map(u => u.username)) !== null && _a !== void 0 ? _a : [];
