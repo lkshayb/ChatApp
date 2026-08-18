@@ -61,10 +61,10 @@ export default function MainApp() {
         setRoomcount(data.rcount)
       }
       else if(data.type == "pplcount"){
-        console.log(data)
+        console.log("msg_data:", data.msg_data);
         setpplcount(data.count)
         setmembersnames(data.names)
-        setMessages((m) => data.msg_data + m);
+        setMessages((m) => [...m,...data.msg_data]);
       }
       else{
         
@@ -243,8 +243,10 @@ export default function MainApp() {
             </div>
             <div className="bg-black/40 backdrop-blur-sm rounded-br-xl border-orange-500/30 border border-t-0 shadow-xl overflow-hidden md:w-[700px] w-[800px]">
               <div className="h-[60vh] overflow-y-auto p-4 space-y-4">
-                {messages.map((message, index) => (
-                  <div key={index} className={`flex flex-col ${isOwnMessage(message.sender) ? 'items-end' : 'items-start'}`}>
+                {messages.map((message, index) => {
+                  if (!message) console.log("BAD MESSAGE AT INDEX", index, messages);
+                  console.log(message.timestamp)
+                  return <div key={index} className={`flex flex-col ${isOwnMessage(message.sender) ? 'items-end' : 'items-start'}`}>
                     <div className={`flex flex-col ${isOwnMessage(message.sender) ? 'items-end' : 'items-start'} mb-2`}>
                       <span className={`text-xs font-medium ${isOwnMessage(message.sender) ? 'text-blue-100' : 'text-white/70'}`}>
                         {message.sender}
@@ -255,7 +257,7 @@ export default function MainApp() {
                       {message.text}
                     </div>
                   </div>
-                ))}
+                } )}
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 bg-black/10 backdrop-blur-sm border-t border-orange-500/30">

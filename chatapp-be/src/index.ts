@@ -164,7 +164,7 @@ wss.on("connection",(socket) => {
                 dbUserId
             });
 
-            const msg_data = await Message.find({roomId: parsedMessage.payload.roomID},{username:1,message:1,createdAt:1,_id:0})
+            const msg_data = await Message.find({roomId: parsedMessage.payload.roomID},{sender:1,text:1,timestamp:1,_id:0})
             const users_data = await Room.findOne({ roomId: parsedMessage.payload.roomID },{ users: 1, _id: 0 }); 
             console.log(users_data)
             const usernames = users_data?.users.map(u => u.username) ?? [];
