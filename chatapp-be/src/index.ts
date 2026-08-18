@@ -164,6 +164,7 @@ wss.on("connection",(socket) => {
                 dbUserId
             });
 
+            const msg_data = await Message.find({roomId: parsedMessage.payload.roomID},{username:1,message:1,createdAt:1,_id:0})
             const users_data = await Room.findOne({ roomId: parsedMessage.payload.roomID },{ users: 1, _id: 0 }); 
             console.log(users_data)
             const usernames = users_data?.users.map(u => u.username) ?? [];
@@ -173,7 +174,8 @@ wss.on("connection",(socket) => {
                         JSON.stringify({
                             type:"pplcount",
                             count:users_data?.users.length,
-                            names: usernames
+                            names: usernames,
+                            msg_data : msg_data
                         })
                     ))
                 }
@@ -191,8 +193,8 @@ wss.on("connection",(socket) => {
             const currentUserRoom = currentUser?.room;
             await Message.create({
                 roomId: currentUser.room,
-                username: currentUser.name,
-                message: parsedMessage.payload.msg
+                sender: currentUser.name,
+                text: parsedMessage.payload.msg
             });
             for (let i = 0;i< allSockets.length;i++){
                 if (allSockets[i].room == currentUserRoom){ 

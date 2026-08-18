@@ -61,17 +61,18 @@ export default function MainApp() {
         setRoomcount(data.rcount)
       }
       else if(data.type == "pplcount"){
+        console.log(data)
         setpplcount(data.count)
         setmembersnames(data.names)
-        console.log(data.names)
+        setMessages((m) => data.msg_data + m);
       }
       else{
         
-      setMessages((m) => [...m, {
-        text: data.msg,
-        sender: data.sender,
-        timestamp: new Date().toLocaleTimeString()
-      }]);
+        setMessages((m) => [...m, {
+          text: data.msg,
+          sender: data.sender,
+          timestamp: new Date().toLocaleTimeString()
+        }]);
       }
       
     };
