@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+chatapp-be/.env
 chatapp-be/dist/
 # Editor directories and files
 .vscode/*
