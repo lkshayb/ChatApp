@@ -61,10 +61,14 @@ export default function MainApp() {
         setRoomcount(data.rcount)
       }
       else if(data.type == "pplcount"){
-        console.log("msg_data:", data.msg_data);
+        if(data.msg_data){
+          console.log("msg_data:", data.msg_data);
+          setMessages((m) => [...m,...data.msg_data]);
+        }
+        
         setpplcount(data.count)
         setmembersnames(data.names)
-        setMessages((m) => [...m,...data.msg_data]);
+        
       }
       else{
         
