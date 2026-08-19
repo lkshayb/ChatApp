@@ -4,6 +4,7 @@ import connectDB from "./db/db";
 import Room from "./db/room"
 import Message from "./db/message"
 import mongoose from "mongoose";
+import "dotenv/config"; 
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = createServer();  
@@ -114,14 +115,15 @@ wss.on("connection",(socket) => {
                 const users_data = await Room.findOne({ roomId: remroom },{ users: 1, _id: 0 }); 
                 console.log(users_data)
                 const usernames = users_data?.users.map(u => u.username) ?? [];
-
+                const msg_data = await Message.find({roomId: remroom},{sender:1,text:1,timestamp:1,_id:0})
                 for(let i=0;i<allSockets.length;i++){
                     if(allSockets[i].room == remroom){
                         allSockets[i].socket.send((
                             JSON.stringify({
                                 type:"pplcount",
                                 count:users_data?.users.length,
-                                names: usernames
+                                names: usernames,
+                                msg_data:msg_data
                             })
                         ))
                     }
