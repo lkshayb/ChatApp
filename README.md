@@ -1,5 +1,5 @@
 # Room-Based Chat App 
-A real-time, room-based chat application built using WebSockets. Users can create or join chat rooms and communicate in real time with others in the same room.
+A real-time, room-based chat application built using WebSockets. Users can create or join chat rooms and communicate in real time with others in the same room. Uses MongoDB to store data for rooms and messages, doesnt explicitly store user data for privacy.
 
 
 ## Features 
@@ -12,7 +12,8 @@ A real-time, room-based chat application built using WebSockets. Users can creat
 
 
 ## Technologies Used 
-- **Backend:** Node.js, Express.js, WebSockets 
+- **Backend:** Node.js, Express.js, WebSockets
+- **DataBase:** MongoDB Atlas, Mongoose Lib
 - **Frontend:** HTML, CSS, JavaScript , React.JS
 - **Version Control:** Git & GitHub
 
@@ -30,19 +31,25 @@ cd chatapp
 ### Change Backend URL Accordingly
 ![image](https://github.com/user-attachments/assets/a26fa219-829c-46df-9aea-7fb027315816)
 
-
+### .env file structure for backend
+```bash
+MONGODB_USERNAME="mongo_db_username"
+MONGODB_PASSWORD="mongo_db_password"
+PORT="port_number_for_backend"
+```
 ### Start the Server
 ```bash
-npm run start //if running backend locally
+## if running backend locally
+npm run start
 ```
 ```bash
-npm run dev:fe //if running backend locally
+## if not running backend locally
+npm run dev:fe 
 ```
 ## Usage
 1. Open the application in a web browser.
 2. Enter a username and enter room no.
-3. Start sending and receiving messages in real time.
-4. 
+4. Start sending and receiving messages in real time.
 ### Screenshots 📸
 <img width="1919" height="909" alt="image" src="https://github.com/user-attachments/assets/820a6456-cf3b-4b76-ae09-eb67219acceb" />
 <img width="1919" height="913" alt="image" src="https://github.com/user-attachments/assets/d1667675-fd33-4770-9139-c8ea187582a0" />
