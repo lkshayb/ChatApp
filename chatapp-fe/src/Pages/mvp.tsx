@@ -187,7 +187,7 @@ export default function MainApp() {
         <div className="absolute bottom-1/3 left-1/2 w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce delay-1000"></div>
         <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-amber-300 rounded-full animate-bounce delay-1500"></div>
       </div>
-      <div className="max-w-4xl mx-auto">
+      <div className="flex flex-col justify-center max-w-4xl mx-auto">
         <div className="text-center mt-10">
           {joined ? (
             <div className="bg-black/60 border border-orange-500/30  backdrop-blur-sm rounded-t-xl p-4 shadow-lg items-center flex justify-between">
